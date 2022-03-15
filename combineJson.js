@@ -1,43 +1,64 @@
 const fs = require('fs');
-
-async function compileJSON() {
-    const driveDir = __dirname + "/drives";
-    console.log(driveDir);
-
-    let driveFiles = [];
-    let accumulatedContent = [];
+const _directory = __dirname + "/drives";
 
 
-    fs.readdir(driveDir, (err, files) => {
-        if(err) {
-            console.log(err);
-        }
+let driveFiles = [];
+
+
+async function collectFilePaths(directory) {
+    return new Promise((resolve, reject) => {
+
+        //where we will store the content from the JSON files we read
+
+        fs.readdir(directory, (err, files) => {
+            if(err) {
+                reject(err);
+            }
+            resolve(files)
+        })
+        
+        
+    })
+}
+
+async function accumulateContent(files) {
+    
+    return new Promise((resolve, reject) => {
+        let accumulatedContent = []
         files.forEach((file) => {
             driveFiles.push(file);
             let newFilePath = __dirname + "/drives/" + file;
             fs.readFile(newFilePath, (err, currentContent) => {
-                if(err){
-                    console.log(err);
+                if(err) {
+                    reject(err);
                 }
                 let parsedContent = JSON.parse(currentContent);
+
                 accumulatedContent.push(parsedContent);
-            });
-        });
-    });
+                let theTruth = accumulatedContent.length === files.length;
+                console.log(theTruth);
+                if(accumulatedContent.length === files.length){
+                    console.log('resolved');
+                    resolve(accumulatedContent);
+                }  
+            })
+        })
+    })
+}
 
-
-    const printer = setInterval(() => {
-        console.log(accumulatedContent);
-        const newPath = __dirname + "/accumulated.json";
-        const jsonFile = JSON.stringify(accumulatedContent, null, 2);
-        fs.writeFile(newPath, jsonFile, (err) => {
-            if(err) {console.log(err)}
-        });
-        clearInterval(printer);
-        }, 1000);
+async function compileJSONFiles(newFileName) {
+    collectFilePaths(_directory)
+    .then(files => accumulateContent(files))
+    .then(content => JSON.stringify(content, null, 2))
+    .then(data => {
+        fs.writeFile(__dirname + "/" + newFileName, data, (err) => {
+            if(err) { console.log(err)}
+            else {console.log('written!')}
+        })
+    })
+    .catch(err => console.log(err));
 }
 
 module.exports = {
-    combineJSON();
+    compileJSONFiles
 }
-

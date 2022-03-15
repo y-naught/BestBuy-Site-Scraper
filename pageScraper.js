@@ -172,7 +172,7 @@ const scraperObject = {
         }
         
         await page.close();
-        jsonExport.combineJSON();
+        jsonExport.compileJSONFiles("accumulated.json");
     }
 }
 
