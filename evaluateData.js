@@ -33,11 +33,15 @@ const categorizeDrives = (drives) => {
             }
             counter++;
             if(counter === drives.length){
+
+                let sortedDrives = sortDrives(HDDs);
+
                 let importantDrives = [HDDs, SSDs];
                 console.log(`HDDs: ${HDDCount}, SSDs: ${SSDCount}`);
-                resolve(importantDrives);
+                
+                resolve(sortedDrives);
             }else if(counter > drives.length){
-                reject("ya done fucked up");
+                reject("ya done messed up");
             }
         })
     })
@@ -49,13 +53,41 @@ const cullDrives = async () => {
     .then(drives => categorizeDrives(drives))
     .then(jsonDrives => JSON.stringify(jsonDrives, null, 2))
     .then(data => {
-        fs.writeFile(`${__dirname}/importantDrives.json`, data, (err) =>{
+        fs.writeFile(`${__dirname}/sortedDrives.json`, data, (err) =>{
             if(err) {
                 console.log(err);
             }
         });
     })
     .catch(err => console.log(err));
+}
+
+const sortDrives = (drives) => {
+    const pricesPerTB = [];
+
+    return new Promise((resolve) => {
+        drives.forEach((drive) => {
+            let capacityRaw = drive["Storage Capacity"];
+            console.log(capacityRaw);
+            if(capacityRaw != undefined){
+                let capacity = capacityRaw.split(" ");
+                let capacityTB = capacity[0]/1000;
+                let priceRaw = drive["price"];
+                let priceFormatted = priceRaw.substring(1, priceRaw.length);
+                let pricePerTB = priceFormatted / capacityTB;
+                drive["Price Per TB"] = pricePerTB;
+                pricesPerTB.push(drive);
+            }else {
+                drive["Price Per TB"] = null;
+                pricesPerTB.push(drive);
+            }
+            
+            if(pricesPerTB.length === drives.length) {
+                pricesPerTB.sort((a,b) => (a["Price Per TB"] > b["Price Per TB"]) ? 1 : -1);
+                resolve(pricesPerTB);
+            }
+        });
+    })
 }
 
 cullDrives();
