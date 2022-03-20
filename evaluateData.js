@@ -90,7 +90,10 @@ const sortDrives = (drives) => {
     })
 }
 
-cullDrives();
+module.exports = {
+    cullDrives
+}
+
 
 // searchJSON(filePath)
 // .then(response => JSON.parse(response))

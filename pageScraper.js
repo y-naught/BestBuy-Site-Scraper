@@ -1,6 +1,9 @@
 
 const fs = require('fs');
 const jsonExport = require('./combineJson.js');
+const dataEvaluation = require('./evaluateData.js')
+const userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4889.0 Safari/537.36"
+
 
 const scraperObject = {
     url: 'https://www.bestbuy.com/site/computer-accessories/hard-drives/abcat0504001.c?id=abcat0504001',
@@ -8,7 +11,9 @@ const scraperObject = {
         //initializes the page
         let page = await browser.newPage();
         console.log('Navigating to ' + this.url);
-
+        page.setUserAgent(userAgent);
+        //let user = await browser.userAgent()
+        //console.log(user);
         //navigates to the hard coded url (the section of the BB site we want to navigate)
         await page.goto(this.url);
         //waits until the page content we want to look through is loaded completely
@@ -33,6 +38,7 @@ const scraperObject = {
 
                 //create a new page to open our product in
                 let tempPage = await browser.newPage();
+                tempPage.setUserAgent(userAgent);
 
                 //reconstruct our full url
                 let tempURL = 'https://www.bestbuy.com' + urls[i];
@@ -106,10 +112,9 @@ const scraperObject = {
                     
                     await tempPage.waitForSelector('ul.specifications-list > li > div.row-value');
                     
-                    //log the values we are looking for
+                    
                     //categories
                     let categories = await tempPage.$$eval( 'ul.specifications-list > li > div.title-container', val => val.map(value=>value.textContent));
-                    //let children = await tempPage.evaluateHandle(e => e.children, categoryStructure);
                     //console.log(categories);
 
                     
@@ -172,7 +177,8 @@ const scraperObject = {
         }
         
         await page.close();
-        jsonExport.compileJSONFiles("accumulated.json");
+        await jsonExport.compileJSONFiles("accumulated.json");
+        dataEvaluation.cullDrives();
     }
 }
 

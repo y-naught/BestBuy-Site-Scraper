@@ -1,5 +1,6 @@
 const puppeteer = require('puppeteer');
 
+
 async function startBrowser() {
     let browser;
     try {

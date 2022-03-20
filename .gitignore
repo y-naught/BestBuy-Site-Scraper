@@ -1,3 +1,4 @@
+.gitignore
 accumulated.json
 node_modules/
 test.js
