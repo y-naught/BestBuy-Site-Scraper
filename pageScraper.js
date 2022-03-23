@@ -22,6 +22,7 @@ const scraperObject = {
         let counter = 0;
 
         //begins the loop until we run out of pages to go through
+        nextPageLoop:
         while(true){
             //counting the number of times it goes through the process
             counter++;
@@ -37,7 +38,26 @@ const scraperObject = {
             for(let i = 0; i < urls.length; i++){
 
                 //create a new page to open our product in
-                let tempPage = await browser.newPage();
+                let tempPage;
+
+                let attempts = 0;
+                let maxAttempts = 3;
+
+                while(true) {
+                    try {
+                        tempPage = await browser.newPage();
+                        break;
+                    } catch (error) {
+                        console.log("Couldn't create a new page because => ", err);
+
+                        if(++attempts === maxAttempts){
+                            throw error
+                        }else {
+                            console.log("...Trying Again...");
+                        }
+                    }
+                }
+                
                 tempPage.setUserAgent(userAgent);
 
                 //reconstruct our full url
@@ -63,7 +83,7 @@ const scraperObject = {
                         'div.model > .product-data-value.body-copy', value => value.textContent)
                     console.log(modelData);
                 } catch (error) {
-                    console.log(error);
+                    console.log("No Model Data Provided");
                     var modelData = null;
                 }
 
@@ -73,7 +93,7 @@ const scraperObject = {
                         'div.sku > .product-data-value.body-copy', value => value.textContent)
                     console.log(sku);
                 } catch (error) {
-                    console.log(error);
+                    console.log("No SKU Provided");
                     var sku = null;
                 }
 
@@ -83,14 +103,14 @@ const scraperObject = {
                         'div.priceView-customer-price > span', value => value.textContent)
                     console.log(currentPrice);
                 } catch (error) {
-                    console.log(error);
+                    console.log("No Price provided");
                 }
                 //checks to see if the previous price is on the page (extracts data here)
                 try {
                     console.log(await tempPage.$eval(   
                         'div.pricing-price__regular-price', value => value.textContent));
                 } catch (error) {
-                    console.log(error);
+                    console.log("No previous price");
                 }
                 //clicks on the specifications tab on the page to open section (extract data here)
                 try{
@@ -165,19 +185,19 @@ const scraperObject = {
 
             //construct url for next page
             let nextPage = await page.$eval('.sku-list-page-next', value => value.getAttribute('href'));
-            
+            console.log(`Next page: ${nextPage}`);
             //check to see if there is a next page
             if(nextPage != null){
                 let nextURL = 'https://www.bestbuy.com' + nextPage;
                 await page.goto(nextURL);
             }else{
                 // exit the loop
-                break;
+                break nextPageLoop;
             }
         }
         
         await page.close();
-        await jsonExport.compileJSONFiles("accumulated.json");
+        await jsonExport.compileJSONFiles("accumulatedContent.json");
         dataEvaluation.cullDrives();
     }
 }

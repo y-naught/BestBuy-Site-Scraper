@@ -1,5 +1,5 @@
 const fs = require('fs');
-const filePath = __dirname + "/accumulated.json";
+const filePath = __dirname + "/accumulatedContent.json";
 
 const searchJSON = (fileName) => {
     return new Promise((resolve, reject) => {
@@ -48,6 +48,7 @@ const categorizeDrives = (drives) => {
 }
 
 const cullDrives = async () => {
+    console.log("Culling drives");
     searchJSON(filePath)
     .then(rawDrives => JSON.parse(rawDrives))
     .then(drives => categorizeDrives(drives))
@@ -89,6 +90,8 @@ const sortDrives = (drives) => {
         });
     })
 }
+
+//cullDrives();
 
 module.exports = {
     cullDrives

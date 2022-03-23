@@ -9,15 +9,13 @@ async function collectFilePaths(directory) {
     return new Promise((resolve, reject) => {
 
         //where we will store the content from the JSON files we read
-
+        console.log("Collecting File paths")
         fs.readdir(directory, (err, files) => {
             if(err) {
                 reject(err);
             }
             resolve(files)
         })
-        
-        
     })
 }
 
@@ -47,6 +45,7 @@ async function accumulateContent(files) {
 }
 
 async function compileJSONFiles(newFileName) {
+    console.log("Compiling the JSON files");
     collectFilePaths(_directory)
     .then(files => accumulateContent(files))
     .then(content => JSON.stringify(content, null, 2))
@@ -58,6 +57,8 @@ async function compileJSONFiles(newFileName) {
     })
     .catch(err => console.log(err));
 }
+
+//compileJSONFiles("accumulatedContent.json");
 
 module.exports = {
     compileJSONFiles
